@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-// use App\Http\Requests\RegistrationRequest;
+
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -24,7 +24,7 @@ class RegisterController extends Controller
         $user = User::create(array_merge(
             $validator->validated(),
             ['password' => bcrypt($request->password)]
-        ));
+        ))->sendEmailVerificationNotification();
 
         return response()->json([
             'message' => '成功しました'

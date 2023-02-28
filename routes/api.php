@@ -20,4 +20,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::middleware(['api'])->group(function ($router){
     Route::post('/register','App\Http\Controllers\RegisterController@register');
+    Route::get('email/verify/{id}','App\Http\Controllers\VerificationController@verify')->name('verification.verify');
+    Route::get('email/resesnd','App\Http\Controllers\VerificationController@resend')->name('verification.resend');
 });

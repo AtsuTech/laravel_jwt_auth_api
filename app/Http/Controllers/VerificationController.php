@@ -26,12 +26,18 @@ class VerificationController extends Controller
     }
 
 
-    public function resend(){
-        if(auth()->user()->hasVerifiedEmail()){
-            return $this->respondBadRequest();
-        }
+    public function resend(Request $request){
 
-        auth()->user()->sendEmailVerificationNotification();
-        return $this->respondWithMessage('メール承認のリンクを再送しました');
+        /**
+         * GTEリクエストでメールアドレスをパラメータとして送り、
+         * そのメールアドレスに承認メールを送信するという仕様にしている。
+         * なので、ビュー(Reactなど)ではinput hiddenなどでemailのパラメータを送るようにする。
+         * 参考コードではログイン状態でないとメールを再送信できない仕様になっていたが、
+         * メール承認が済んでいないのにログインができるというのはセキュリティ上問題があると思い
+         * このような仕様にした。
+         */
+        $user = User::where('email','=',$request->email)->first();
+        $user->sendEmailVerificationNotification();
+        return response()->json(['message' => 'メール承認のリンクを再送しました']);
     }
 }

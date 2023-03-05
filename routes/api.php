@@ -20,6 +20,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::middleware(['api'])->group(function ($router){
     Route::post('/register','App\Http\Controllers\RegisterController@register');
+    Route::post('/login','App\Http\Controllers\LoginController@login');
     Route::get('email/verify/{id}','App\Http\Controllers\VerificationController@verify')->name('verification.verify');
     Route::get('email/resesnd','App\Http\Controllers\VerificationController@resend')->name('verification.resend');
+});
+
+Route::middleware(['jwt.auth'])->group(function (){
+    Route::post('logout', 'App\Http\Controllers\LoginController@logout')->name('logout');
 });

@@ -27,7 +27,8 @@ class RegisterController extends Controller
         ))->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => '成功しました'
+            'message' => '成功しました',
+            'email' => $request->email
         ], 201);
     }
 }

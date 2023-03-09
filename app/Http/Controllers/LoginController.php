@@ -18,34 +18,42 @@ class LoginController extends Controller
     }
 
     /**
-     * Get a JWT via given credentials.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * ログイン処理
+     * メール承認が完了(Userテーブルのemail_verified_at != null)していないと
+     * ログインができない仕様にしてある
      */
     public function login()
     {
         $credentials = request(['email', 'password']);
+
+        // メール承認のカラムのデータ取得
+        $user = Authenticatable::where('email','=',request(['email']))->first();
+        $verify_check = $user->email_verified_at;
+
+        // メール承認のカラムがnullどうかチェック。nullならログインを却下する
+        if(is_null($verify_check)){
+            return response()->json(['error' => 'まだメールが承認されていません'], 401);
+        }
 
         //JWTAuth::attempt()にしないとトークンが得られなかった(auth()->attemptだとtrueと帰ってくる)
         if (! $token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return $this->respondWithToken($token);
+        return $this->respondWithToken($token,$verify_check);
     }
 
     /**
-     * Get the authenticated User.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * マイページ？？
      */
     public function me()
     {
         return response()->json(auth()->user());
     }
 
-    
-    //ログアウト処理
+    /**
+     * ログアウト処理
+     */
     public function logout()
     {
         auth('')->logout();
@@ -56,8 +64,6 @@ class LoginController extends Controller
 
     /**
      * Refresh a token.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
     public function refresh()
     {
@@ -65,16 +71,13 @@ class LoginController extends Controller
     }
 
     /**
-     * Get the token array structure.
-     *
-     * @param  string $token
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * ログイン成功時にトークンなどの値を返す
      */
-    protected function respondWithToken($token)
+    protected function respondWithToken($token,$verify_check)
     {
         return response()->json([
             'access_token' => $token,
+            'email_verify' => $verify_check,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60
         ]);

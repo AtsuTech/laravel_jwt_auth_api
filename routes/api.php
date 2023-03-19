@@ -23,6 +23,9 @@ Route::middleware(['api'])->group(function ($router){
     Route::post('/login','App\Http\Controllers\LoginController@login');
     Route::get('email/verify/{id}','App\Http\Controllers\VerificationController@verify')->name('verification.verify');
     Route::get('email/resesnd','App\Http\Controllers\VerificationController@resend')->name('verification.resend');
+    Route::post('/forgot-password','App\Http\Controllers\PasswordResetController@sendemail');
+    // Route::get('/reset/password/{token}','App\Http\Controllers\PasswordResetController@resetform');
+    Route::post('/reset-password','App\Http\Controllers\PasswordResetController@passwordreset')->name('password.reset');
 });
 
 Route::middleware(['jwt.auth'])->group(function (){

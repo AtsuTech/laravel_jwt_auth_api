@@ -29,18 +29,19 @@ class LoginController extends Controller
         // メール承認のカラムのデータ取得
         $user = Authenticatable::where('email','=',request(['email']))->first();
         $verify_check = $user->email_verified_at;
+        $user_name = $user->name;
 
         // メール承認のカラムがnullどうかチェック。nullならログインを却下する
         if(is_null($verify_check)){
-            return response()->json(['error' => 'まだメールが承認されていません'], 401);
+            return response()->json(['error' => 'メールアドレスの承認が完了していません。承認がされていないアカウントではログインできません。'], 401);
         }
 
         //JWTAuth::attempt()にしないとトークンが得られなかった(auth()->attemptだとtrueと帰ってくる)
         if (! $token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'ログインできません。メールアドレス、パスワードをご確認ください。'], 401);
         }
 
-        return $this->respondWithToken($token,$verify_check);
+        return $this->respondWithToken($token,$verify_check,$user_name);
     }
 
     /**
@@ -58,7 +59,7 @@ class LoginController extends Controller
     {
         auth('')->logout();
 
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json(['message' => '正常にログアウトしました。']);
     }
 
 
@@ -73,14 +74,15 @@ class LoginController extends Controller
     /**
      * ログイン成功時にトークンなどの値を返す
      */
-    protected function respondWithToken($token,$verify_check)
+    protected function respondWithToken($token,$verify_check,$user_name)
     {
         return response()->json([
             'access_token' => $token,
             'email_verify' => $verify_check,
+            'user_name' => $user_name,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60
-        ]);
+        ],200);
     }
 
 
